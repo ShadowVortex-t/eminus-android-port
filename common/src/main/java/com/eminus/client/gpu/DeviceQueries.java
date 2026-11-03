@@ -41,7 +41,19 @@ public final class DeviceQueries {
     }
 
     public static OptionalLong openGlTexelElements() {
-        return read(OPENGL, TEXEL_LIMIT, () -> OptionalLong.of(GL32C.glGetInteger64(GL31C.GL_MAX_TEXTURE_BUFFER_SIZE)));
+        return read(OPENGL, TEXEL_LIMIT, () -> {
+            long elements = GL32C.glGetInteger64(GL31C.GL_MAX_TEXTURE_BUFFER_SIZE);
+            if (elements <= 0) {
+                // Translation layers such as MobileGlues answer 0 for a limit they do not forward. No device has a
+                // zero-element texel buffer, so treat it as unread, the same as a failed query.
+                Eminus.LOGGER.warn("The {} was reported as {} on {}: treating it as unread", TEXEL_LIMIT, elements,
+                        OPENGL);
+                return OptionalLong.empty();
+            }
+
+            Eminus.LOGGER.info("The {} on {} is {} elements", TEXEL_LIMIT, OPENGL, elements);
+            return OptionalLong.of(elements);
+        });
     }
 
     public static OptionalLong openGlFreeBytes() {

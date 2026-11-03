@@ -1,0 +1,42 @@
+name: Build mod jar
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Applies eminus-texel-limit.patch if it sits in the repo root and is not already applied.
+      - name: Apply patch
+        run: |
+          if [ -f eminus-texel-limit.patch ]; then
+            if git apply --check eminus-texel-limit.patch 2>/dev/null; then
+              git apply eminus-texel-limit.patch
+              echo "Patch applied."
+            else
+              echo "Patch already applied or does not match; building as is."
+            fi
+          fi
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Build
+        run: |
+          chmod +x gradlew
+          ./gradlew modJar --no-daemon --stacktrace
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: eminus-jar
+          path: build/libs/*.jar
+          if-no-files-found: error
