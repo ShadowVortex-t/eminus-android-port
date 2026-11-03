@@ -5,6 +5,9 @@ on:
   push:
     branches: [main]
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -40,3 +43,12 @@ jobs:
           name: eminus-jar
           path: build/libs/*.jar
           if-no-files-found: error
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="build-${{ github.run_number }}"
+          gh release create "$TAG" build/libs/*.jar \
+            --title "Eminus build $TAG" \
+            --notes "Fabric/NeoForge jar built from commit ${{ github.sha }} (texel-buffer limit patch)."
