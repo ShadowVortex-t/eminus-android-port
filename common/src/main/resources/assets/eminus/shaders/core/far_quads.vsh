@@ -4,12 +4,10 @@
 #include <eminus:far_lightmap.glsl>
 #include <eminus:far_frame.glsl>
 
-#ifdef STORAGE_QUADS
-// The device's texel buffers are too small for the geometry arena, so its quads are read as a storage buffer.
-layout(std430, binding = 0) readonly buffer EminusQuads {
-    uvec2 EminusQuadWords[];
-};
-#define EMINUS_QUAD(index) EminusQuadWords[index]
+#ifdef TEXTURE_QUADS
+// The device's texel buffers are too small for the geometry arena, so its quads are read from a 2D texture.
+uniform usampler2D EminusQuads;
+#define EMINUS_QUAD(index) texelFetch(EminusQuads, ivec2((index) & QUAD_TEXTURE_MASK, (index) >> QUAD_TEXTURE_SHIFT), 0).xy
 #else
 uniform usamplerBuffer EminusQuads;
 #define EMINUS_QUAD(index) texelFetch(EminusQuads, index).xy

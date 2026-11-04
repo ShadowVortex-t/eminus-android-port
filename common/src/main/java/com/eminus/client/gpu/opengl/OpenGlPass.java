@@ -1,10 +1,11 @@
 package com.eminus.client.gpu.opengl;
 
+import java.nio.ByteBuffer;
+
 import com.eminus.gpu.buffer.Buffer;
 import com.eminus.gpu.buffer.TexelView;
 import com.eminus.gpu.pass.Pass;
 import com.eminus.gpu.pass.PassSpec;
-import com.eminus.gpu.pipeline.Binding;
 import com.eminus.gpu.pipeline.Pipeline;
 import com.eminus.gpu.pipeline.PipelineSpec;
 import com.eminus.gpu.texture.Sampler;
@@ -19,7 +20,7 @@ import org.lwjgl.opengl.GL20C;
 import org.lwjgl.opengl.GL30C;
 import org.lwjgl.opengl.GL31C;
 import org.lwjgl.opengl.GL33C;
-import org.lwjgl.opengl.GL43C;
+import org.lwjgl.opengl.GL32C;
 import org.lwjgl.system.MemoryStack;
 
 final class OpenGlPass implements Pass {
@@ -122,9 +123,11 @@ final class OpenGlPass implements Pass {
     @Override
     public void bind(String name, TexelView texels) {
         OpenGlPipeline.Slot slot = slot(name);
-        if (slot != null && slot.kind() == Binding.Kind.STORAGE) {
+        if (slot != null && texels instanceof OpenGlQuadTexture quads) {
             slot.requireFormat(name, texels.format());
-            GL30C.glBindBufferBase(GL43C.GL_SHADER_STORAGE_BUFFER, slot.index(), ((OpenGlStorageView) texels).handle());
+            GameHandles.activeTexture(slot.index());
+            GameHandles.bindTexture(quads.texture());
+            GL33C.glBindSampler(slot.index(), gpu.sampler(Sampler.NEAREST));
         } else if (slot != null) {
             slot.requireFormat(name, texels.format());
             GameHandles.activeTexture(slot.index());
@@ -161,10 +164,35 @@ final class OpenGlPass implements Pass {
 
     @Override
     public void drawIndexedIndirect(Buffer commands, int firstCommand, int count) {
+        if (gpu.emulatedIndirect()) {
+            replayIndirect((OpenGlBuffer) commands, firstCommand, count);
+            return;
+        }
+
         GL15C.glBindBuffer(ARBDrawIndirect.GL_DRAW_INDIRECT_BUFFER, ((OpenGlBuffer) commands).handle());
         ARBMultiDrawIndirect.glMultiDrawElementsIndirect(GL11C.GL_TRIANGLES, GL11C.GL_UNSIGNED_INT,
                 (long) firstCommand * INDEXED_INDIRECT_BYTES, count, TIGHTLY_PACKED);
         GL15C.glBindBuffer(ARBDrawIndirect.GL_DRAW_INDIRECT_BUFFER, UNBOUND);
+    }
+
+    // The five ints of an indirect indexed draw: index count, instance count, first index, base vertex, base instance.
+    private static void replayIndirect(OpenGlBuffer commands, int firstCommand, int count) {
+        ByteBuffer shadow = commands.shadow();
+        if (shadow == null) {
+            throw new IllegalStateException("Indirect commands were not kept for replay");
+        }
+
+        for (int command = firstCommand; command < firstCommand + count; command++) {
+            int at = command * INDEXED_INDIRECT_BYTES;
+            int indices = shadow.getInt(at);
+            int instances = shadow.getInt(at + Integer.BYTES);
+            int firstIndex = shadow.getInt(at + 2 * Integer.BYTES);
+            int baseVertex = shadow.getInt(at + 3 * Integer.BYTES);
+            if (indices > 0 && instances > 0) {
+                GL32C.glDrawElementsBaseVertex(GL11C.GL_TRIANGLES, indices, GL11C.GL_UNSIGNED_INT,
+                        (long) firstIndex * Integer.BYTES, baseVertex);
+            }
+        }
     }
 
     @Override

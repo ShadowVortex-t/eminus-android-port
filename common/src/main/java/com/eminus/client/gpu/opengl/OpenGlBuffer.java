@@ -1,8 +1,11 @@
 package com.eminus.client.gpu.opengl;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 import com.eminus.gpu.buffer.Buffer;
+
+import org.jspecify.annotations.Nullable;
 
 import org.lwjgl.opengl.ARBBufferStorage;
 import org.lwjgl.opengl.GL15C;
@@ -14,6 +17,8 @@ class OpenGlBuffer implements Buffer {
 
     private final OpenGlName name;
     private final long size;
+    private @Nullable OpenGlQuadTexture mirror;
+    private @Nullable ByteBuffer shadow;
 
     OpenGlBuffer(OpenGlName name, long size) {
         this.name = name;
@@ -55,9 +60,41 @@ class OpenGlBuffer implements Buffer {
     }
 
     void write(long offset, ByteBuffer data) {
+        int length = data.remaining();
         GL15C.glBindBuffer(TARGET, name.id());
         GL15C.glBufferSubData(TARGET, offset, data);
         GL15C.glBindBuffer(TARGET, UNBOUND);
+        if (shadow != null) {
+            shadow.duplicate().position((int) offset).put(data.duplicate());
+        }
+        changed(offset, length);
+    }
+
+    /** Tells the buffer that bytes of it were written on the GPU, so a texture mirroring it can follow. */
+    void changed(long offset, long bytes) {
+        if (mirror != null) {
+            mirror.refresh(offset, bytes);
+        }
+    }
+
+    void mirror(@Nullable OpenGlQuadTexture view) {
+        mirror = view;
+    }
+
+    void mirror(@Nullable OpenGlQuadTexture view, OpenGlQuadTexture current) {
+        if (mirror == current) {
+            mirror = view;
+        }
+    }
+
+    /** Keeps a copy of everything written, in memory, for draws that read their commands on the CPU. */
+    OpenGlBuffer shadowed() {
+        shadow = ByteBuffer.allocateDirect((int) size).order(ByteOrder.nativeOrder());
+        return this;
+    }
+
+    @Nullable ByteBuffer shadow() {
+        return shadow;
     }
 
     @Override

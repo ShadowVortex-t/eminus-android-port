@@ -36,9 +36,12 @@ public interface Gpu extends AutoCloseable {
 
     TexelView texelView(Buffer buffer, Format format);
 
-    /** A view that binds the buffer as a shader storage buffer, for a buffer too big for a texel buffer. */
-    default TexelView storageView(Buffer buffer, Format format) {
-        throw new UnsupportedOperationException("This device binds no storage buffers");
+    /**
+     * A view of the buffer as a 2D texture kept in step with it, for a buffer too big for a texel buffer. The buffer
+     * stays the copy that is written; the texture is what shaders read.
+     */
+    default TexelView textureView(Buffer buffer, Format format) {
+        throw new UnsupportedOperationException("This device has no texture view of a buffer");
     }
 
     Texture texture(String label, Set<TextureUsage> usage, Format format, int width, int height, int mips);

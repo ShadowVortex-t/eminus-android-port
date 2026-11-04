@@ -21,6 +21,7 @@ import com.eminus.client.model.ModelRecords;
 import com.eminus.client.model.ModelVariants;
 import com.eminus.client.render.arena.GeometryArena;
 import com.eminus.client.render.arena.MeshRecords;
+import com.eminus.client.gpu.DeviceQueries;
 import com.eminus.gpu.Capabilities;
 import com.eminus.gpu.Location;
 import com.eminus.gpu.buffer.Buffer;
@@ -72,8 +73,7 @@ final class FarQuads {
             Capabilities capabilities, VariantDraw variantDraw, boolean nearSections) {
         PipelineSpec.Builder builder = PipelineSpec.builder(location, shader, shader)
                 .withBinding(Binding.uniform(FarFrame.BLOCK.name()))
-                .withBinding(capabilities.storageQuads() ? Binding.storage(QUADS)
-                        : Binding.texel(QUADS, GeometryArena.QUAD_FORMAT))
+                .withBinding(Binding.texel(QUADS, GeometryArena.QUAD_FORMAT))
                 .withBinding(Binding.texel(MESH_RECORDS, MeshRecords.TEXEL_FORMAT))
                 .withBinding(Binding.texel(MODEL_RECORDS, ModelRecords.TEXEL_FORMAT))
                 .withBinding(Binding.texel(MODEL_VARIANTS, ModelVariants.TEXEL_FORMAT));
@@ -108,8 +108,10 @@ final class FarQuads {
                 .withDefine("MODEL_TEXELS", ModelRecords.TEXELS)
                 .withDefine("PACK_ID_TEXEL", ModelRecords.PACK_ID_TEXEL)
                 .withDefine("SHADES_TEXEL", ModelRecords.SHADES_TEXEL);
-        if (capabilities.storageQuads()) {
-            builder.withDefine("STORAGE_QUADS");
+        if (capabilities.textureQuads()) {
+            builder.withDefine("TEXTURE_QUADS")
+                    .withDefine("QUAD_TEXTURE_SHIFT", DeviceQueries.QUAD_TEXTURE_SHIFT)
+                    .withDefine("QUAD_TEXTURE_MASK", DeviceQueries.QUAD_TEXTURE_WIDTH - 1);
         }
 
         cellKeyLayout(builder);

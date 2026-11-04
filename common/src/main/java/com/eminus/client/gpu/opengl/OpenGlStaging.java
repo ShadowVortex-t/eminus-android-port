@@ -29,6 +29,7 @@ abstract class OpenGlStaging implements Staging {
                 bytes);
         GL15C.glBindBuffer(GL31C.GL_COPY_READ_BUFFER, UNBOUND);
         GL15C.glBindBuffer(GL31C.GL_COPY_WRITE_BUFFER, UNBOUND);
+        target.changed(targetOffset, bytes);
     }
 
     private static final class Copied extends OpenGlStaging {

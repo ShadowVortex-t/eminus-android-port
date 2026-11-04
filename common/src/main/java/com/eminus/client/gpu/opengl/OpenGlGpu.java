@@ -81,13 +81,15 @@ public final class OpenGlGpu implements Gpu, Foreign {
     private final Map<Borrowed, OpenGlTexture> borrowed = new EnumMap<>(Borrowed.class);
     private final List<OpenGlPipeline> pipelines = new ArrayList<>();
     private final Optional<Sparse> sparse;
+    private final boolean emulatedIndirect;
     private final int vertexArray;
     private int quadIndices = NO_BUFFER;
     private int quadIndexCapacity;
     private int texelViews;
 
-    private OpenGlGpu(Capabilities capabilities) {
+    private OpenGlGpu(Capabilities capabilities, boolean emulatedIndirect) {
         this.capabilities = capabilities;
+        this.emulatedIndirect = emulatedIndirect;
         this.sparse = OpenGlSparse.of(objects, GL.getCapabilities());
         this.vertexArray = GL30C.glGenVertexArrays();
         GL30C.glBindVertexArray(vertexArray);
@@ -102,12 +104,19 @@ public final class OpenGlGpu implements Gpu, Foreign {
                 && GL11C.glGetInteger(ARBClipControl.GL_CLIP_DEPTH_MODE) == ARBClipControl.GL_ZERO_TO_ONE;
 
         OptionalLong texelElements = DeviceQueries.openGlTexelElements();
-        OptionalLong storageBytes = DeviceQueries.openGlStorageBytes(texelElements, ArenaSizing.MIN_BYTES,
-                ArenaSizing.QUAD_BYTES);
+        OptionalLong textureBytes = DeviceQueries.openGlQuadTextureBytes(texelElements, ArenaSizing.MIN_BYTES,
+                ArenaSizing.QUAD_BYTES, DeviceQueries.QUAD_TEXTURE_WIDTH, DeviceQueries.QUAD_TEXTURE_CAP_BYTES);
+        // A driver that lists no indirect draws can still run the same commands as one draw call each: they are plain
+        // data the CPU wrote, and no shader reads a draw or instance index.
+        boolean indirect = gl.GL_ARB_draw_indirect && gl.GL_ARB_multi_draw_indirect;
+        boolean emulated = !indirect && gl.OpenGL32;
+        Eminus.LOGGER.info("[eminus/gl] device: drawIndirect={} multiDrawIndirect={} bufferStorage={} openGl32={}"
+                + " maxTextureSize={}{}", gl.GL_ARB_draw_indirect, gl.GL_ARB_multi_draw_indirect,
+                gl.GL_ARB_buffer_storage, gl.OpenGL32, GL11C.glGetInteger(GL11C.GL_MAX_TEXTURE_SIZE),
+                emulated ? ", indirect draws are replayed one call at a time" : "");
         return new OpenGlGpu(new Capabilities(BACKEND, zeroToOne, GameHandles.depthReversed(),
-                GameHandles.lightmapHalfTexel(),
-                gl.GL_ARB_draw_indirect, gl.GL_ARB_multi_draw_indirect, gl.GL_ARB_buffer_storage, NO_ALLOCATION_LIMIT,
-                texelElements, DeviceQueries.openGlFreeBytes(), storageBytes));
+                GameHandles.lightmapHalfTexel(), indirect || emulated, indirect || emulated, gl.GL_ARB_buffer_storage,
+                NO_ALLOCATION_LIMIT, texelElements, DeviceQueries.openGlFreeBytes(), textureBytes), emulated);
     }
 
     OpenGlObjects objects() {
@@ -135,7 +144,8 @@ public final class OpenGlGpu implements Gpu, Foreign {
 
     @Override
     public Buffer buffer(String label, Set<BufferUsage> usage, long bytes) {
-        return OpenGlBuffer.create(objects, capabilities.persistentMapping(), label, bytes);
+        OpenGlBuffer buffer = OpenGlBuffer.create(objects, capabilities.persistentMapping(), label, bytes);
+        return emulatedIndirect && usage.contains(BufferUsage.INDIRECT) ? buffer.shadowed() : buffer;
     }
 
     @Override
@@ -159,8 +169,12 @@ public final class OpenGlGpu implements Gpu, Foreign {
     }
 
     @Override
-    public TexelView storageView(Buffer buffer, Format format) {
-        return new OpenGlStorageView((OpenGlBuffer) buffer, format);
+    public TexelView textureView(Buffer buffer, Format format) {
+        return OpenGlQuadTexture.create(objects, TEXEL_LABEL + texelViews++, (OpenGlBuffer) buffer, format);
+    }
+
+    boolean emulatedIndirect() {
+        return emulatedIndirect;
     }
 
     @Override

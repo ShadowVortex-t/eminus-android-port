@@ -13,10 +13,10 @@ public record Capabilities(
         long maxAllocationBytes,
         OptionalLong texelElements,
         OptionalLong freeBytes,
-        OptionalLong storageBytes) {
-    /** Whether the geometry arena is read as a shader storage buffer because a texel buffer is too small for it. */
-    public boolean storageQuads() {
-        return storageBytes.isPresent();
+        OptionalLong textureBytes) {
+    /** Whether the geometry arena is read from a 2D texture because a texel buffer is too small for it. */
+    public boolean textureQuads() {
+        return textureBytes.isPresent();
     }
 
 }

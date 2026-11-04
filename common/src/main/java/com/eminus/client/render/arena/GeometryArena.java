@@ -77,7 +77,7 @@ public final class GeometryArena implements MeshSlots, AutoCloseable {
     }
 
     private static TexelView view(Gpu gpu, Buffer quads) {
-        return gpu.capabilities().storageQuads() ? gpu.storageView(quads, QUAD_FORMAT)
+        return gpu.capabilities().textureQuads() ? gpu.textureView(quads, QUAD_FORMAT)
                 : gpu.texelView(quads, QUAD_FORMAT);
     }
 
