@@ -22,7 +22,7 @@ import com.eminus.ingest.SectionPyramid;
 import com.eminus.store.CellStore;
 import com.eminus.store.EmptyCellStore;
 import com.eminus.store.SaveService;
-import com.eminus.store.SqliteCellStore;
+import com.eminus.store.CellStores;
 import com.eminus.work.WorkService;
 
 import com.uber.nullaway.annotations.Initializer;
@@ -127,8 +127,8 @@ public final class DimensionRuntime {
     void openStore(LongSupplier clock) {
         long dropGraceMillis = TimeUnit.HOURS.toMillis(Integer.getInteger(DROP_GRACE_PROPERTY, DROP_GRACE_HOURS));
         try {
-            SqliteCellStore opened = SqliteCellStore.open(folder, lowestStoredLevel, dropGraceMillis, clock);
-            store = opened;
+            CellStores.Opened opened = CellStores.open(folder, lowestStoredLevel, dropGraceMillis, clock);
+            store = opened.store();
             ingestLevel = opened.heldLevel();
         } catch (RuntimeException failure) {
             store = EmptyCellStore.INSTANCE;

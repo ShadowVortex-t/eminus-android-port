@@ -33,6 +33,11 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
+      - name: Test the stores
+        run: |
+          chmod +x gradlew
+          ./gradlew :common:test --tests 'com.eminus.store.*' --no-daemon
+
       - name: Build
         run: |
           chmod +x gradlew
