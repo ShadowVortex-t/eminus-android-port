@@ -11,6 +11,7 @@ import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11C;
 import org.lwjgl.opengl.GL31C;
 import org.lwjgl.opengl.GL32C;
+import org.lwjgl.opengl.GL43C;
 import org.lwjgl.opengl.GLCapabilities;
 import org.lwjgl.opengl.NVXGPUMemoryInfo;
 import org.lwjgl.system.MemoryStack;
@@ -19,6 +20,8 @@ public final class DeviceQueries {
     public static final String OPENGL = "OpenGL";
     public static final String TEXEL_LIMIT = "texel-buffer limit";
     public static final String FREE_MEMORY = "free video memory";
+    public static final String STORAGE_LIMIT = "storage-block limit";
+    public static final String STORAGE_PROPERTY = "eminus.storageQuads";
 
     private static final long BYTES_PER_KIB = 1024L;
     private static final int ATI_MEMINFO_VALUES = 4;
@@ -53,6 +56,35 @@ public final class DeviceQueries {
 
             Eminus.LOGGER.info("The {} on {} is {} elements", TEXEL_LIMIT, OPENGL, elements);
             return OptionalLong.of(elements);
+        });
+    }
+
+    /**
+     * The size of one shader storage block, when the geometry arena has to be read from one: the device's texel buffer
+     * holds less than the arena's minimum, and storage buffers are there. Empty keeps the texel buffer. The property
+     * {@value #STORAGE_PROPERTY} set to true or false overrides the choice.
+     */
+    public static OptionalLong openGlStorageBytes(OptionalLong texelElements, long minimumBytes, long quadBytes) {
+        String forced = System.getProperty(STORAGE_PROPERTY);
+        boolean texelTooSmall = texelElements.isPresent() && texelElements.getAsLong() * quadBytes < minimumBytes;
+        boolean wanted = forced == null ? texelTooSmall : Boolean.parseBoolean(forced);
+        if (!wanted) {
+            return OptionalLong.empty();
+        }
+
+        GLCapabilities capabilities = GL.getCapabilities();
+        if (!capabilities.OpenGL43 && !capabilities.GL_ARB_shader_storage_buffer_object) {
+            Eminus.LOGGER.warn("The geometry arena does not fit a texel buffer on {}, and no storage buffers are there",
+                    OPENGL);
+            return OptionalLong.empty();
+        }
+
+        return read(OPENGL, STORAGE_LIMIT, () -> {
+            long block = GL32C.glGetInteger64(GL43C.GL_MAX_SHADER_STORAGE_BLOCK_SIZE);
+            int vertexBlocks = GL11C.glGetInteger(GL43C.GL_MAX_VERTEX_SHADER_STORAGE_BLOCKS);
+            Eminus.LOGGER.info("The {} on {} is {} bytes, {} in the vertex stage", STORAGE_LIMIT, OPENGL, block,
+                    vertexBlocks);
+            return block > 0 && vertexBlocks > 0 ? OptionalLong.of(block) : OptionalLong.empty();
         });
     }
 

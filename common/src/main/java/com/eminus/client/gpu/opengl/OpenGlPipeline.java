@@ -154,6 +154,7 @@ final class OpenGlPipeline implements Pipeline {
 
     private static int resolve(int program, PipelineSpec spec, Map<String, @Nullable Slot> slots, int firstUnit) {
         int nextBlock = 0;
+        int nextStorage = 0;
         int nextUnit = firstUnit;
         GL20C.glUseProgram(program);
         for (Binding binding : spec.bindings()) {
@@ -176,7 +177,9 @@ final class OpenGlPipeline implements Pipeline {
                         slots.put(binding.name(), new Slot(binding.kind(), nextUnit++, binding.format()));
                     }
                 }
-                case STORAGE -> throw new IllegalArgumentException("Own OpenGL binds no storage buffers");
+                // The shader names its binding point in the block's layout, so there is nothing to look up or set:
+                // the Nth storage binding declared is the shader's binding N.
+                case STORAGE -> slots.put(binding.name(), new Slot(binding.kind(), nextStorage++, binding.format()));
             }
         }
         GL20C.glUseProgram(NO_PROGRAM);

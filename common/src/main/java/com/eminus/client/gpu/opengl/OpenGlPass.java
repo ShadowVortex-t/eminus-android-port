@@ -4,6 +4,7 @@ import com.eminus.gpu.buffer.Buffer;
 import com.eminus.gpu.buffer.TexelView;
 import com.eminus.gpu.pass.Pass;
 import com.eminus.gpu.pass.PassSpec;
+import com.eminus.gpu.pipeline.Binding;
 import com.eminus.gpu.pipeline.Pipeline;
 import com.eminus.gpu.pipeline.PipelineSpec;
 import com.eminus.gpu.texture.Sampler;
@@ -18,6 +19,7 @@ import org.lwjgl.opengl.GL20C;
 import org.lwjgl.opengl.GL30C;
 import org.lwjgl.opengl.GL31C;
 import org.lwjgl.opengl.GL33C;
+import org.lwjgl.opengl.GL43C;
 import org.lwjgl.system.MemoryStack;
 
 final class OpenGlPass implements Pass {
@@ -120,7 +122,10 @@ final class OpenGlPass implements Pass {
     @Override
     public void bind(String name, TexelView texels) {
         OpenGlPipeline.Slot slot = slot(name);
-        if (slot != null) {
+        if (slot != null && slot.kind() == Binding.Kind.STORAGE) {
+            slot.requireFormat(name, texels.format());
+            GL30C.glBindBufferBase(GL43C.GL_SHADER_STORAGE_BUFFER, slot.index(), ((OpenGlStorageView) texels).handle());
+        } else if (slot != null) {
             slot.requireFormat(name, texels.format());
             GameHandles.activeTexture(slot.index());
             GL11C.glBindTexture(GL31C.GL_TEXTURE_BUFFER, ((OpenGlTexelView) texels).texture());

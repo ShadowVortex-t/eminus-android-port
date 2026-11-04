@@ -72,7 +72,8 @@ final class FarQuads {
             Capabilities capabilities, VariantDraw variantDraw, boolean nearSections) {
         PipelineSpec.Builder builder = PipelineSpec.builder(location, shader, shader)
                 .withBinding(Binding.uniform(FarFrame.BLOCK.name()))
-                .withBinding(Binding.texel(QUADS, GeometryArena.QUAD_FORMAT))
+                .withBinding(capabilities.storageQuads() ? Binding.storage(QUADS)
+                        : Binding.texel(QUADS, GeometryArena.QUAD_FORMAT))
                 .withBinding(Binding.texel(MESH_RECORDS, MeshRecords.TEXEL_FORMAT))
                 .withBinding(Binding.texel(MODEL_RECORDS, ModelRecords.TEXEL_FORMAT))
                 .withBinding(Binding.texel(MODEL_VARIANTS, ModelVariants.TEXEL_FORMAT));
@@ -107,6 +108,10 @@ final class FarQuads {
                 .withDefine("MODEL_TEXELS", ModelRecords.TEXELS)
                 .withDefine("PACK_ID_TEXEL", ModelRecords.PACK_ID_TEXEL)
                 .withDefine("SHADES_TEXEL", ModelRecords.SHADES_TEXEL);
+        if (capabilities.storageQuads()) {
+            builder.withDefine("STORAGE_QUADS");
+        }
+
         cellKeyLayout(builder);
         quadLayout(builder);
         placementLayout(builder);

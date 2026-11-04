@@ -186,7 +186,7 @@ EminusQuadVertex eminus_quad_vertex(int vertexId) {
     int cellZ = int(eminus_field(mesh.xy, CELL_Z_SHIFT, CELL_HORIZONTAL_BITS)) + MIN_HORIZONTAL;
     int cellY = int(eminus_field(mesh.xy, CELL_Y_SHIFT, CELL_VERTICAL_BITS)) + MIN_VERTICAL;
 
-    uvec2 quad = texelFetch(EminusQuads,quadIndex).xy;
+    uvec2 quad = EMINUS_QUAD(quadIndex);
     int face = int(eminus_field(quad, QUAD_FACE_SHIFT, QUAD_FACE_BITS));
     ivec3 voxel = ivec3(eminus_field(quad, QUAD_X_SHIFT, QUAD_COORDINATE_BITS),
                         eminus_field(quad, QUAD_Y_SHIFT, QUAD_COORDINATE_BITS),
@@ -208,9 +208,9 @@ EminusQuadVertex eminus_quad_vertex(int vertexId) {
     if (occluded) {
         int wordShift = quadInMesh % OCCLUSION_PER_SLOT * OCCLUSION_BITS;
         int wordSlot = quadInMesh / OCCLUSION_PER_SLOT;
-        vertex.occlusion = eminus_field(texelFetch(EminusQuads, streamStart + wordSlot).xy, wordShift, OCCLUSION_BITS);
+        vertex.occlusion = eminus_field(EMINUS_QUAD(streamStart + wordSlot), wordShift, OCCLUSION_BITS);
         if (innerOccluded) {
-            uint inner = eminus_field(texelFetch(EminusQuads, streamStart + outerSlots + wordSlot).xy, wordShift,
+            uint inner = eminus_field(EMINUS_QUAD(streamStart + outerSlots + wordSlot), wordShift,
                                       OCCLUSION_BITS);
             vertex.occlusion |= inner << uint(OCCLUSION_INNER_SHIFT);
         }
@@ -233,7 +233,7 @@ EminusQuadVertex eminus_quad_vertex(int vertexId) {
     uint placement = 0u;
     vertex.tint = vec3(1.0);
     if (colorIndex != 0) {
-        uvec2 entry = texelFetch(EminusQuads,streamStart + occlusionSlots + colorIndex).rg;
+        uvec2 entry = EMINUS_QUAD(streamStart + occlusionSlots + colorIndex);
         vertex.tint = vec3(eminus_field(entry.r, TINT_RED_SHIFT, TINT_CHANNEL_BITS),
                            eminus_field(entry.r, TINT_GREEN_SHIFT, TINT_CHANNEL_BITS),
                            eminus_field(entry.r, TINT_BLUE_SHIFT, TINT_CHANNEL_BITS))

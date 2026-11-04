@@ -26,6 +26,7 @@ public final class ModelPublisher implements AutoCloseable {
     private int growths;
     private int reuploaded;
     private boolean atlasFull;
+    private boolean texelLimitWarned;
 
     private ModelPublisher(Gpu gpu, ModelBakery bakery, ModelAtlas atlas, ModelRecords records,
             ModelVariants variants) {
@@ -134,8 +135,18 @@ public final class ModelPublisher implements AutoCloseable {
         records.close();
         records = ModelRecords.create(gpu, grown);
         recordCapacity = grown;
+        warnPastTexelLimit((long) grown * ModelRecords.TEXELS);
         variantStarts = Arrays.copyOf(variantStarts, grown);
         rewriteRecords();
+    }
+
+    private void warnPastTexelLimit(long texels) {
+        java.util.OptionalLong limit = gpu.capabilities().texelElements();
+        if (!texelLimitWarned && limit.isPresent() && texels > limit.getAsLong()) {
+            texelLimitWarned = true;
+            Eminus.LOGGER.warn("The model records need {} texels but a texel buffer here holds {}: models past that"
+                    + " draw wrong", texels, limit.getAsLong());
+        }
     }
 
     private void rewriteRecords() {

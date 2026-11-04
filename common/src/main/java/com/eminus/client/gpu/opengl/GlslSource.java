@@ -15,6 +15,8 @@ public final class GlslSource {
 
     private static final Pattern INCLUDE = Pattern.compile("^\\s*#include\\s*<([^>]+)>\\s*$");
     private static final String VERSION = "#version";
+    private static final String STORAGE_DEFINE = "STORAGE_QUADS";
+    private static final String STORAGE_VERSION = "#version 430";
     private static final String DEFINE = "#define ";
     private static final String LINE = "\n";
     private static final int MAX_INCLUDE_DEPTH = 8;
@@ -26,8 +28,11 @@ public final class GlslSource {
             Function<Location, Optional<String>> includes) {
         StringBuilder composed = new StringBuilder();
         boolean versionSeen = false;
+        boolean storage = defines.stream().anyMatch(define -> define.name().equals(STORAGE_DEFINE));
         for (String line : source.split(LINE, -1)) {
-            composed.append(expand(line, includes, 0)).append(LINE);
+            // Shader storage blocks need GLSL 4.30; the rest of the source is unchanged by the newer version.
+            boolean version = !versionSeen && line.stripLeading().startsWith(VERSION);
+            composed.append(storage && version ? STORAGE_VERSION : expand(line, includes, 0)).append(LINE);
             if (!versionSeen && line.stripLeading().startsWith(VERSION)) {
                 versionSeen = true;
                 composed.append(VERTEX_INDEX_ALIAS).append(LINE);

@@ -35,7 +35,8 @@ public final class GeometryArena implements MeshSlots, AutoCloseable {
 
     private static final String LABEL = "eminus-geometry-arena";
     private static final Set<BufferUsage> USAGE =
-            EnumSet.of(BufferUsage.VERTEX, BufferUsage.TEXEL, BufferUsage.COPY_SRC, BufferUsage.COPY_DST);
+            EnumSet.of(BufferUsage.VERTEX, BufferUsage.TEXEL, BufferUsage.STORAGE, BufferUsage.COPY_SRC,
+                    BufferUsage.COPY_DST);
     private static final long WARNING_PERIOD_NANOS = 1_000_000_000L;
     private static final int MIB_SHIFT = 20;
     private static final int KIB_SHIFT = 10;
@@ -72,7 +73,12 @@ public final class GeometryArena implements MeshSlots, AutoCloseable {
         this.allocator = allocator;
         this.records = records;
         this.uploader = uploader;
-        quadTexels = gpu.texelView(quads, QUAD_FORMAT);
+        quadTexels = view(gpu, quads);
+    }
+
+    private static TexelView view(Gpu gpu, Buffer quads) {
+        return gpu.capabilities().storageQuads() ? gpu.storageView(quads, QUAD_FORMAT)
+                : gpu.texelView(quads, QUAD_FORMAT);
     }
 
     public static @Nullable GeometryArena create(Gpu gpu, BackendSupport support, long bytes,
@@ -266,7 +272,7 @@ public final class GeometryArena implements MeshSlots, AutoCloseable {
         quads.close();
         quads = replacement;
         bytes = replacementBytes;
-        quadTexels = gpu.texelView(quads, QUAD_FORMAT);
+        quadTexels = view(gpu, quads);
     }
 
     public void evict(LongCollection keys) {

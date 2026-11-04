@@ -12,5 +12,11 @@ public record Capabilities(
         boolean persistentMapping,
         long maxAllocationBytes,
         OptionalLong texelElements,
-        OptionalLong freeBytes) {
+        OptionalLong freeBytes,
+        OptionalLong storageBytes) {
+    /** Whether the geometry arena is read as a shader storage buffer because a texel buffer is too small for it. */
+    public boolean storageQuads() {
+        return storageBytes.isPresent();
+    }
+
 }

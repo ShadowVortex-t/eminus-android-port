@@ -61,7 +61,7 @@ public final class GameGpu implements Gpu {
                 DepthStencilState.DEFAULT.depthTest() == CompareOp.GREATER_THAN_OR_EQUAL, LIGHTMAP_HALF_TEXEL,
                 info.features().drawIndirect(), info.features().multiDrawIndirect(),
                 info.features().persistentMapping(), info.limits().maxMemoryAllocationSize(),
-                reading.texelElements(), reading.freeBytes()));
+                reading.texelElements(), reading.freeBytes(), OptionalLong.empty()));
     }
 
     public static String backendName() {

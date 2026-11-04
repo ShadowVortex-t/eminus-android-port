@@ -18,7 +18,8 @@ final class ArenaBudget {
     }
 
     static long ceiling(Capabilities device, OptionalLong deviceFreeBytes, long replacedArenaBytes) {
-        OptionalLong texelBytes = device.texelElements().isPresent()
+        OptionalLong texelBytes = device.storageQuads() ? device.storageBytes()
+                : device.texelElements().isPresent()
                 ? OptionalLong.of(device.texelElements().getAsLong() * ArenaSizing.QUAD_BYTES)
                 : OptionalLong.empty();
         OptionalLong freeBytes = deviceFreeBytes.isPresent()
@@ -26,6 +27,10 @@ final class ArenaBudget {
                 : OptionalLong.empty();
         long maxAllocation = device.maxAllocationBytes();
         long ceiling = ArenaSizing.ceiling(texelBytes, maxAllocation, freeBytes);
+        if (device.storageQuads() && device.texelElements().isPresent()) {
+            // The quads sit in a storage buffer, but each segment still has a record in a texel buffer.
+            ceiling = Math.min(ceiling, device.texelElements().getAsLong() * ArenaSizing.SEGMENT_BYTES);
+        }
         logCeiling(ceiling, texelBytes, maxAllocation, freeBytes, replacedArenaBytes);
         return ceiling;
     }

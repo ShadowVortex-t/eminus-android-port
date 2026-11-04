@@ -19,6 +19,7 @@ import com.eminus.client.gpu.DeviceQueries;
 import com.eminus.gpu.Capabilities;
 import com.eminus.gpu.Foreign;
 import com.eminus.gpu.Format;
+import com.eminus.render.arena.ArenaSizing;
 import com.eminus.gpu.Gpu;
 import com.eminus.gpu.ShaderSources;
 import com.eminus.gpu.Sparse;
@@ -100,10 +101,13 @@ public final class OpenGlGpu implements Gpu, Foreign {
         boolean zeroToOne = gl.GL_ARB_clip_control
                 && GL11C.glGetInteger(ARBClipControl.GL_CLIP_DEPTH_MODE) == ARBClipControl.GL_ZERO_TO_ONE;
 
+        OptionalLong texelElements = DeviceQueries.openGlTexelElements();
+        OptionalLong storageBytes = DeviceQueries.openGlStorageBytes(texelElements, ArenaSizing.MIN_BYTES,
+                ArenaSizing.QUAD_BYTES);
         return new OpenGlGpu(new Capabilities(BACKEND, zeroToOne, GameHandles.depthReversed(),
                 GameHandles.lightmapHalfTexel(),
                 gl.GL_ARB_draw_indirect, gl.GL_ARB_multi_draw_indirect, gl.GL_ARB_buffer_storage, NO_ALLOCATION_LIMIT,
-                DeviceQueries.openGlTexelElements(), DeviceQueries.openGlFreeBytes()));
+                texelElements, DeviceQueries.openGlFreeBytes(), storageBytes));
     }
 
     OpenGlObjects objects() {
@@ -152,6 +156,11 @@ public final class OpenGlGpu implements Gpu, Foreign {
     @Override
     public OptionalLong freeBytes() {
         return DeviceQueries.openGlFreeBytes();
+    }
+
+    @Override
+    public TexelView storageView(Buffer buffer, Format format) {
+        return new OpenGlStorageView((OpenGlBuffer) buffer, format);
     }
 
     @Override
