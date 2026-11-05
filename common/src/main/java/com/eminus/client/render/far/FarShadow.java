@@ -101,7 +101,7 @@ public final class FarShadow implements AutoCloseable {
     }
 
     public void draw(Pass pass) {
-        pass.drawIndexedIndirect(indirect.buffer(), FIRST_COMMAND, commands.opaqueCount());
+        pass.drawIndexedIndirectUnordered(indirect.buffer(), FIRST_COMMAND, commands.opaqueCount());
     }
 
     public void drawTranslucent(Pass pass) {

@@ -15,6 +15,14 @@ public interface Pass extends Bindings, AutoCloseable {
 
     void drawIndexedIndirect(Buffer commands, int firstCommand, int count);
 
+    /**
+     * The same draws for commands whose order does not matter, as opaque geometry under a depth test: a pass that
+     * runs each command as a call of its own may sort and merge them into fewer.
+     */
+    default void drawIndexedIndirectUnordered(Buffer commands, int firstCommand, int count) {
+        drawIndexedIndirect(commands, firstCommand, count);
+    }
+
     @Override
     void close();
 }

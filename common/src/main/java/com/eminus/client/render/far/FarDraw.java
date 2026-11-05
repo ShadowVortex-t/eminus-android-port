@@ -234,7 +234,7 @@ public final class FarDraw {
 
     public void drawOpaque(Pass pass) {
         if (opaqueCount > 0) {
-            pass.drawIndexedIndirect(commands, 0, opaqueCount);
+            pass.drawIndexedIndirectUnordered(commands, 0, opaqueCount);
         }
     }
 

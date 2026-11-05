@@ -1,6 +1,5 @@
 package com.eminus.client.gpu.opengl;
 
-import java.nio.ByteBuffer;
 
 import com.eminus.gpu.buffer.Buffer;
 import com.eminus.gpu.buffer.TexelView;
@@ -20,7 +19,6 @@ import org.lwjgl.opengl.GL20C;
 import org.lwjgl.opengl.GL30C;
 import org.lwjgl.opengl.GL31C;
 import org.lwjgl.opengl.GL33C;
-import org.lwjgl.opengl.GL32C;
 import org.lwjgl.system.MemoryStack;
 
 final class OpenGlPass implements Pass {
@@ -164,35 +162,24 @@ final class OpenGlPass implements Pass {
 
     @Override
     public void drawIndexedIndirect(Buffer commands, int firstCommand, int count) {
+        draw((OpenGlBuffer) commands, firstCommand, count, false);
+    }
+
+    @Override
+    public void drawIndexedIndirectUnordered(Buffer commands, int firstCommand, int count) {
+        draw((OpenGlBuffer) commands, firstCommand, count, true);
+    }
+
+    private void draw(OpenGlBuffer commands, int firstCommand, int count, boolean unordered) {
         if (gpu.emulatedIndirect()) {
-            replayIndirect((OpenGlBuffer) commands, firstCommand, count);
+            IndirectReplay.run(commands, firstCommand, count, unordered);
             return;
         }
 
-        GL15C.glBindBuffer(ARBDrawIndirect.GL_DRAW_INDIRECT_BUFFER, ((OpenGlBuffer) commands).handle());
+        GL15C.glBindBuffer(ARBDrawIndirect.GL_DRAW_INDIRECT_BUFFER, commands.handle());
         ARBMultiDrawIndirect.glMultiDrawElementsIndirect(GL11C.GL_TRIANGLES, GL11C.GL_UNSIGNED_INT,
                 (long) firstCommand * INDEXED_INDIRECT_BYTES, count, TIGHTLY_PACKED);
         GL15C.glBindBuffer(ARBDrawIndirect.GL_DRAW_INDIRECT_BUFFER, UNBOUND);
-    }
-
-    // The five ints of an indirect indexed draw: index count, instance count, first index, base vertex, base instance.
-    private static void replayIndirect(OpenGlBuffer commands, int firstCommand, int count) {
-        ByteBuffer shadow = commands.shadow();
-        if (shadow == null) {
-            throw new IllegalStateException("Indirect commands were not kept for replay");
-        }
-
-        for (int command = firstCommand; command < firstCommand + count; command++) {
-            int at = command * INDEXED_INDIRECT_BYTES;
-            int indices = shadow.getInt(at);
-            int instances = shadow.getInt(at + Integer.BYTES);
-            int firstIndex = shadow.getInt(at + 2 * Integer.BYTES);
-            int baseVertex = shadow.getInt(at + 3 * Integer.BYTES);
-            if (indices > 0 && instances > 0) {
-                GL32C.glDrawElementsBaseVertex(GL11C.GL_TRIANGLES, indices, GL11C.GL_UNSIGNED_INT,
-                        (long) firstIndex * Integer.BYTES, baseVertex);
-            }
-        }
     }
 
     @Override

@@ -64,13 +64,13 @@ public final class OpaquePass {
             if (solidCount > 0) {
                 pass.pipeline(solid);
                 FarQuads.bind(pass, arena, models, lightmap, atlas, frame, null);
-                pass.drawIndexedIndirect(commands, FIRST_COMMAND, solidCount);
+                pass.drawIndexedIndirectUnordered(commands, FIRST_COMMAND, solidCount);
             }
 
             pass.pipeline(pipeline);
             FarQuads.bind(pass, arena, models, lightmap, atlas, frame, nearSections);
             if (drawCount > solidCount) {
-                pass.drawIndexedIndirect(commands, solidCount, drawCount - solidCount);
+                pass.drawIndexedIndirectUnordered(commands, solidCount, drawCount - solidCount);
             }
         }
     }
