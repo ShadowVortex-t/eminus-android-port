@@ -200,9 +200,9 @@ class TreeCleanerTest {
                 ONE_PIXEL_PER_BLOCK), frame, horizon).isEmpty());
     }
 
-    private List<TreeNode> pick(float pixelsPerBlock, int farCells) {
+    private List<TreeNode> pick(float pixelsPerBlock, int farChunks) {
         return cleaner.pick(nodes.all(), FakeCameras.underPressure(
-                FakeCameras.everything(INSIDE, INSIDE, INSIDE, farCells, pixelsPerBlock)), frame, horizon);
+                FakeCameras.everything(INSIDE, INSIDE, INSIDE, farChunks, pixelsPerBlock)), frame, horizon);
     }
 
     private TreeNode root(int cellX) {

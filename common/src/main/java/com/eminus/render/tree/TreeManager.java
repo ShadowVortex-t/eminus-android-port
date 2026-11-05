@@ -8,6 +8,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicReference;
 
+import com.eminus.settings.FarDistance;
 import com.eminus.Eminus;
 import com.eminus.cell.CellKey;
 import com.eminus.cell.DetailLevel;
@@ -355,7 +356,7 @@ public final class TreeManager implements CellChangeListener, MeshListener {
 
     private CameraFrame acceptFrame(CameraFrame posted) {
         this.camera = posted;
-        if (roots.update(posted.eyeX(), posted.eyeZ(), posted.farCells(), columns)) {
+        if (roots.update(posted.eyeX(), posted.eyeZ(), FarDistance.chunksToCells(posted.farChunks()), columns)) {
             treeChanged = true;
         }
 

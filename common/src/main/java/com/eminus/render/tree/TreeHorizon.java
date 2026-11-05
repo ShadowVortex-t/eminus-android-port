@@ -68,7 +68,7 @@ final class TreeHorizon {
         quietFrames = 0;
         lifted = true;
         horizon *= LIFT_RATIO;
-        if (horizon >= (double) camera.farCells() * FarDistance.BLOCKS_PER_TOP_LEVEL_CELL) {
+        if (horizon >= (double) camera.farChunks() * FarDistance.BLOCKS_PER_CHUNK) {
             horizon = UNBOUNDED;
         }
 

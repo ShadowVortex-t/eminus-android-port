@@ -24,7 +24,7 @@ public final class SettingsText {
     public static final String TITLE_KEY = "gui.eminus.settings.title";
     public static final String INGESTION_KEY = "gui.eminus.settings.ingestion";
     public static final String LOD_QUALITY_KEY = "gui.eminus.settings.lod_quality";
-    public static final String FAR_RENDER_CELLS_KEY = "gui.eminus.settings.far_render_cells";
+    public static final String FAR_RENDER_CHUNKS_KEY = "gui.eminus.settings.far_render_cells";
     public static final String WORKER_THREADS_KEY = "gui.eminus.settings.worker_threads";
     public static final String DETAIL_DISTANCE_KEY = "gui.eminus.settings.detail_distance";
     public static final String FOG_KEY = "gui.eminus.settings.fog";
@@ -209,8 +209,8 @@ public final class SettingsText {
         return Component.translatable(SHADER_PACK_LOD_KEY + "." + lod.key());
     }
 
-    public static Component farRenderDistance(int cells) {
-        return Component.translatable(VANILLA_CHUNKS_KEY, FarDistance.cellsToChunks(cells));
+    public static Component farRenderDistance(int chunks) {
+        return Component.translatable(VANILLA_CHUNKS_KEY, chunks);
     }
 
     private SettingsText() {

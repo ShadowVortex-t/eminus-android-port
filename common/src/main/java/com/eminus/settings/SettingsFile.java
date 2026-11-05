@@ -27,7 +27,8 @@ public final class SettingsFile {
     public static final String LOD_TEXTURES_KEY = "lod_textures";
     public static final String LOD_CORNER_OCCLUSION_KEY = "lod_corner_occlusion";
     public static final String LOWEST_STORED_LEVEL_KEY = "lowest_stored_level";
-    public static final String FAR_RENDER_CELLS_KEY = "far_render_cells";
+    public static final String FAR_RENDER_CHUNKS_KEY = "far_render_chunks";
+    private static final String FORMER_FAR_RENDER_CELLS_KEY = "far_render_cells";
     public static final String WORKER_THREADS_KEY = "worker_threads";
     public static final String DETAIL_DISTANCE_KEY = "detail_distance";
     public static final String FOG_KEY = "fog";
@@ -57,9 +58,9 @@ public final class SettingsFile {
             at every LOD level, finest_level at the finest level alone, so a brightness
             step shows where it meets the next level, and off at none.""";
 
-    private static final String FAR_RENDER_CELLS_COMMENT = """
-            Radius of LOD, in top-level cells of 512 blocks (32 chunks each):
-            16 cells reach 8192 blocks, or 512 chunks. Work grows with the square of this
+    private static final String FAR_RENDER_CHUNKS_COMMENT = """
+            Radius of LOD, in chunks. 512 chunks reach 8192 blocks. The game raises
+            this to at least your render distance plus 2. Work grows with the square of this
             number — more roots in the ring, more nodes walked per frame, more meshes in
             video memory.""";
 
@@ -126,8 +127,7 @@ public final class SettingsFile {
                 bool(json, INGESTION_KEY, defaults.ingestion()),
                 lodChoice(json, defaults.lodChoice()),
                 customLod(json, defaults.customLod()),
-                bounded(json, FAR_RENDER_CELLS_KEY, defaults.farRenderCells(),
-                        Settings.MIN_FAR_RENDER_CELLS, Settings.MAX_FAR_RENDER_CELLS),
+                farRenderChunks(json, defaults.farRenderChunks()),
                 bounded(json, WORKER_THREADS_KEY, defaults.workerThreads(),
                         Settings.MIN_WORKER_THREADS, Settings.MAX_WORKER_THREADS),
                 keyed(json, DETAIL_DISTANCE_KEY, defaults.detailDistance(), DetailDistance::fromKey),
@@ -135,7 +135,7 @@ public final class SettingsFile {
                 bool(json, FADE_KEY, defaults.fade()),
                 keyed(json, SHADER_PACK_LOD_KEY, defaults.shaderPackLod(), ShaderPackLod::fromKey),
                 bool(json, LOD_ANIMATIONS_KEY, defaults.lodAnimations()));
-        if (holdsStoredLevelOnly(json) || holdsFormerMinimal(json) || holdsFormerGrassToggle(json)) {
+        if (holdsFormerFarCells(json) || holdsStoredLevelOnly(json) || holdsFormerMinimal(json) || holdsFormerGrassToggle(json)) {
             save(file, loaded);
         }
 
@@ -160,8 +160,8 @@ public final class SettingsFile {
                 new JsonPrimitive(custom.fullTextures() ? TEXTURES_FULL : TEXTURES_HALF), null));
         entries.add(entry(LOD_CORNER_OCCLUSION_KEY, new JsonPrimitive(custom.cornerOcclusion().key()), null));
 
-        entries.add(entry(FAR_RENDER_CELLS_KEY, new JsonPrimitive(settings.farRenderCells()),
-                FAR_RENDER_CELLS_COMMENT));
+        entries.add(entry(FAR_RENDER_CHUNKS_KEY, new JsonPrimitive(settings.farRenderChunks()),
+                FAR_RENDER_CHUNKS_COMMENT));
         entries.add(entry(WORKER_THREADS_KEY, new JsonPrimitive(settings.workerThreads()),
                 WORKER_THREADS_COMMENT));
         entries.add(entry(DETAIL_DISTANCE_KEY, new JsonPrimitive(settings.detailDistance().key()),
@@ -213,6 +213,21 @@ public final class SettingsFile {
         }
 
         return null;
+    }
+
+    private static boolean holdsFormerFarCells(JsonObject json) {
+        return !json.has(FAR_RENDER_CHUNKS_KEY) && json.has(FORMER_FAR_RENDER_CELLS_KEY);
+    }
+
+    private static int farRenderChunks(JsonObject json, int fallback) {
+        if (holdsFormerFarCells(json)) {
+            int cells = bounded(json, FORMER_FAR_RENDER_CELLS_KEY, FarDistance.chunksToCells(fallback), 1, 64);
+            return Math.clamp(FarDistance.cellsToChunks(cells), Settings.MIN_FAR_RENDER_CHUNKS,
+                    Settings.MAX_FAR_RENDER_CHUNKS);
+        }
+
+        return bounded(json, FAR_RENDER_CHUNKS_KEY, fallback, Settings.MIN_FAR_RENDER_CHUNKS,
+                Settings.MAX_FAR_RENDER_CHUNKS);
     }
 
     private static LodChoice lodChoice(JsonObject json, LodChoice fallback) {

@@ -216,7 +216,7 @@ public final class FarRenderer implements AutoCloseable {
     }
 
     public static boolean resizes(Settings built, Settings updated) {
-        return built.farRenderCells() != updated.farRenderCells() || built.detailDistance() != updated.detailDistance();
+        return built.farRenderChunks() != updated.farRenderChunks() || built.detailDistance() != updated.detailDistance();
     }
 
     public void resize(Minecraft client, Settings settings) {
@@ -387,8 +387,12 @@ public final class FarRenderer implements AutoCloseable {
 
         tree.frame(new CameraFrame(game.eyeX(), game.eyeY(), game.eyeZ(), walkViewProjection,
                 FarProjection.focalPixels(client.options.fov().get(), main.height()),
-                FarProjection.focalPixels(game.fov(), main.height()), settings.farRenderCells(),
+                FarProjection.focalPixels(game.fov(), main.height()), effectiveChunks(game, settings),
                 settings.detailDistance().pixels(), arena.pressure(), frames, rotation, margin));
+    }
+
+    private static int effectiveChunks(GameFrame game, Settings settings) {
+        return FarDistance.effective(settings.farRenderChunks(), game.renderDistance());
     }
 
     private void updateFog(GameFrame game, ClientLevel level, Settings settings) {
@@ -400,7 +404,7 @@ public final class FarRenderer implements AutoCloseable {
                 level.getMinY() + level.getHeight());
         fog = CompositeFog.of(settings.fog(), settings.fade(), gameFog.environmentalStart(),
                 gameFog.environmentalEnd(), nearBlocks, reachBlocks, NearReach.horizontalBlocks(keptChunks),
-                settings.farRenderCells());
+                effectiveChunks(game, settings));
         fogColor = gameFog.color();
     }
 
@@ -430,7 +434,7 @@ public final class FarRenderer implements AutoCloseable {
                 game.anisotropy(), CameraOrigin.of(game.eyeX(), game.eyeY(), game.eyeZ()));
         draw.frame(indirect.buffer(), commands.opaqueCount(), commands.translucentCount(), gpu.lightmap(),
                 FarQuads.atlasSampler(game.terrainFilter()), farProjection, game.viewRotation(),
-                FarDistance.cellsToBlocks(settings.farRenderCells()));
+                FarDistance.chunksToBlocks(effectiveChunks(game, settings)));
     }
 
     private void upload(TreeBatch batch) {

@@ -62,7 +62,7 @@ class SettingsFileTest {
                 {
                   "ingestion": false,
                   "lod_quality": "sideways",
-                  "far_render_cells": "many",
+                  "far_render_chunks": "many",
                   "detail_distance": "sideways",
                   "fog": "sideways",
                   "fade": 3
@@ -71,7 +71,7 @@ class SettingsFileTest {
 
         assertFalse(loaded.ingestion());
         assertEquals(Settings.DEFAULT_LOD_CHOICE, loaded.lodChoice());
-        assertEquals(Settings.DEFAULT_FAR_RENDER_CELLS, loaded.farRenderCells());
+        assertEquals(Settings.DEFAULT_FAR_RENDER_CHUNKS, loaded.farRenderChunks());
         assertEquals(Settings.DEFAULT_DETAIL_DISTANCE, loaded.detailDistance());
         assertEquals(Settings.DEFAULT_FOG, loaded.fog());
         assertEquals(Settings.DEFAULT_FADE, loaded.fade());
@@ -95,12 +95,12 @@ class SettingsFileTest {
         Settings defaults = Settings.defaults();
         Settings loaded = loadJson("""
                 {
-                  "far_render_cells": %d,
+                  "far_render_chunks": %d,
                   "worker_threads": %d
                 }
-                """.formatted(Settings.MAX_FAR_RENDER_CELLS + 1, Settings.MAX_WORKER_THREADS + 1));
+                """.formatted(Settings.MAX_FAR_RENDER_CHUNKS + 1, Settings.MAX_WORKER_THREADS + 1));
 
-        assertEquals(defaults.farRenderCells(), loaded.farRenderCells());
+        assertEquals(defaults.farRenderChunks(), loaded.farRenderChunks());
         assertEquals(defaults.workerThreads(), loaded.workerThreads());
     }
 
@@ -113,7 +113,7 @@ class SettingsFileTest {
         assertEquals(defaults.ingestion(), loaded.ingestion());
         assertEquals(defaults.lodChoice(), loaded.lodChoice());
         assertEquals(defaults.customLod(), loaded.customLod());
-        assertEquals(defaults.farRenderCells(), loaded.farRenderCells());
+        assertEquals(defaults.farRenderChunks(), loaded.farRenderChunks());
         assertEquals(defaults.workerThreads(), loaded.workerThreads());
         assertEquals(defaults.fog(), loaded.fog());
         assertEquals(defaults.fade(), loaded.fade());
@@ -152,7 +152,7 @@ class SettingsFileTest {
         assertTrue(content.contains("\"lod_quality\": \"medium\""), content);
         assertFalse(content.contains("lowest_stored_level"), content);
         assertEquals(loaded, SettingsFile.load(configDir.resolve(SettingsService.FILE_NAME)));
-        assertEquals(24, loaded.farRenderCells());
+        assertEquals(24 * 32, loaded.farRenderChunks());
     }
 
     @Test

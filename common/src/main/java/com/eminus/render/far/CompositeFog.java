@@ -8,8 +8,8 @@ public record CompositeFog(float gameFogStart, float gameFogEnd, float reach, fl
     public static final float FADE_BAND_BLOCKS = FarDistance.BLOCKS_PER_TOP_LEVEL_CELL;
 
     public static CompositeFog of(boolean fog, boolean fade, float environmentalStart, float environmentalEnd,
-            float nearBlocks, float reachBlocks, float horizontalReachBlocks, int farCells) {
-        float farBlocks = (float) farCells * FarDistance.BLOCKS_PER_TOP_LEVEL_CELL;
+            float nearBlocks, float reachBlocks, float horizontalReachBlocks, int farChunks) {
+        float farBlocks = (float) farChunks * FarDistance.BLOCKS_PER_CHUNK;
 
         return new CompositeFog(
                 fog ? environmentalStart : NONE,

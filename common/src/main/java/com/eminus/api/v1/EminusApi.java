@@ -41,7 +41,7 @@ public final class EminusApi {
      * any thread, once mod loading has finished.
      */
     public static int farDistanceBlocks() {
-        return FarDistance.cellsToBlocks(SettingsService.get().settings().farRenderCells());
+        return FarDistance.chunksToBlocks(SettingsService.get().settings().farRenderChunks());
     }
 
     /**

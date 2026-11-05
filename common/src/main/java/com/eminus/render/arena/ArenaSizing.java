@@ -29,12 +29,12 @@ public final class ArenaSizing {
         return BUDGETED_QUADS_PER_CELL[level - DetailLevel.MIN];
     }
 
-    public static long wanted(int farRenderCells, int subdivisionPixels, float focalPixels, int lowestLevel,
+    public static long wanted(int farRenderChunks, int subdivisionPixels, float focalPixels, int lowestLevel,
             MeshOcclusion occlusion) {
         long slots = 0;
 
         for (int level = Math.max(lowestLevel, DetailLevel.MIN); level <= DetailLevel.MAX; level++) {
-            long quads = (long) ArenaDemand.columns(level, focalPixels, subdivisionPixels, farRenderCells)
+            long quads = (long) ArenaDemand.columns(level, focalPixels, subdivisionPixels, farRenderChunks)
                     * ArenaDemand.cellsPerColumn(level) * budgetedQuadsPerCell(level);
             long words = Math.ceilDiv(quads, OcclusionWord.PER_SLOT);
             slots += quads + (occlusion.at(level) ? words : 0) + (occlusion.water(level) ? words : 0);

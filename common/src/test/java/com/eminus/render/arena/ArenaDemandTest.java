@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 
 class ArenaDemandTest {
     private static final float FOCAL_PIXELS = 978.0F;
-    private static final int FAR_CELLS = Settings.DEFAULT_FAR_RENDER_CELLS;
+    private static final int FAR_CELLS = Settings.DEFAULT_FAR_RENDER_CHUNKS;
     private static final int SUBDIVISION = Settings.DEFAULT_DETAIL_DISTANCE.pixels();
     private static final int NEAREST_RING = 1;
     private static final int PERCENT = 100;

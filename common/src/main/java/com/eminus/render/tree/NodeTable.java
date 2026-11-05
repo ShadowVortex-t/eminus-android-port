@@ -28,11 +28,11 @@ public final class NodeTable {
         this.capacity = capacity;
     }
 
-    public static int capacity(int lowestLevel, float focalPixels, int subdivisionPixels, int farRenderCells,
+    public static int capacity(int lowestLevel, float focalPixels, int subdivisionPixels, int farRenderChunks,
             int levelHeight) {
         long cells = 0;
         for (int level = Math.max(lowestLevel, DetailLevel.MIN); level <= DetailLevel.MAX; level++) {
-            cells += (long) ArenaDemand.columns(level, focalPixels, subdivisionPixels, farRenderCells)
+            cells += (long) ArenaDemand.columns(level, focalPixels, subdivisionPixels, farRenderChunks)
                     * Math.ceilDiv(levelHeight, DetailLevel.blocksPerCell(level));
         }
 

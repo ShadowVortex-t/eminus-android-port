@@ -526,7 +526,7 @@ class TreeTraversalTest {
                 (float) (FakeCameras.THRESHOLD_PIXELS * -BEHIND / CELL * thresholds));
     }
 
-    private static CameraFrame far(int farCells) {
-        return FakeCameras.everything(INSIDE, INSIDE, INSIDE, farCells, FakeCameras.FAR_PIXELS_PER_BLOCK);
+    private static CameraFrame far(int farChunks) {
+        return FakeCameras.everything(INSIDE, INSIDE, INSIDE, farChunks, FakeCameras.FAR_PIXELS_PER_BLOCK);
     }
 }

@@ -17,8 +17,8 @@ public final class ArenaDemand {
         return (double) DetailLevel.blocksPerCell(level) * focalPixels / subdivisionPixels;
     }
 
-    public static int columns(int level, float focalPixels, int subdivisionPixels, int farRenderCells) {
-        double far = (double) farRenderCells * FarDistance.BLOCKS_PER_TOP_LEVEL_CELL;
+    public static int columns(int level, float focalPixels, int subdivisionPixels, int farRenderChunks) {
+        double far = (double) farRenderChunks * FarDistance.BLOCKS_PER_CHUNK;
         double reach = level >= DetailLevel.MAX
                 ? far
                 : Math.min(2.0 * subdivisionRadius(level, focalPixels, subdivisionPixels), far);
@@ -27,11 +27,11 @@ public final class ArenaDemand {
         return (int) Math.round(Math.PI * reach * reach / (side * side));
     }
 
-    public static int totalColumns(int lowestLevel, float focalPixels, int subdivisionPixels, int farRenderCells) {
+    public static int totalColumns(int lowestLevel, float focalPixels, int subdivisionPixels, int farRenderChunks) {
         int total = 0;
 
         for (int level = Math.max(lowestLevel, DetailLevel.MIN); level <= DetailLevel.MAX; level++) {
-            total += columns(level, focalPixels, subdivisionPixels, farRenderCells);
+            total += columns(level, focalPixels, subdivisionPixels, farRenderChunks);
         }
 
         return total;

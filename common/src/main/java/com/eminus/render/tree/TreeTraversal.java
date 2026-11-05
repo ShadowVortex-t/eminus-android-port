@@ -72,7 +72,7 @@ final class TreeTraversal {
 
     void walk(Collection<TreeNode> roots, CameraFrame camera, int budget, int outOfViewBudget, long walk) {
         begin(roots, camera);
-        double farBlocks = (double) camera.farCells() * FarDistance.BLOCKS_PER_TOP_LEVEL_CELL;
+        double farBlocks = (double) camera.farChunks() * FarDistance.BLOCKS_PER_CHUNK;
         visitAll(camera, farBlocks, walk);
         if (!camera.pressure()) {
             request(camera, farBlocks, budget, outOfViewBudget);
@@ -97,7 +97,7 @@ final class TreeTraversal {
         rebuilds.clear();
         pending.clear();
         pendingOutOfView.clear();
-        front.begin(camera.eyeX(), camera.eyeZ(), (double) camera.farCells() * FarDistance.BLOCKS_PER_TOP_LEVEL_CELL
+        front.begin(camera.eyeX(), camera.eyeZ(), (double) camera.farChunks() * FarDistance.BLOCKS_PER_CHUNK
                 - DetailLevel.blocksPerCell(DetailLevel.MAX));
         starved = false;
     }
@@ -140,7 +140,7 @@ final class TreeTraversal {
         outOfViewDrawnKeys.clear();
         outOfViewDescendedKeys.clear();
         outOfViewWaitingKeys.clear();
-        double farBlocks = (double) camera.farCells() * FarDistance.BLOCKS_PER_TOP_LEVEL_CELL;
+        double farBlocks = (double) camera.farChunks() * FarDistance.BLOCKS_PER_CHUNK;
         current.clear();
         current.addAll(outside);
         listing = true;

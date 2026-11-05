@@ -10,7 +10,7 @@ import static com.eminus.client.settings.SettingsText.BUILDING_CATEGORY_KEY;
 import static com.eminus.client.settings.SettingsText.CUSTOM_LOD_KEY;
 import static com.eminus.client.settings.SettingsText.DETAIL_DISTANCE_KEY;
 import static com.eminus.client.settings.SettingsText.FADE_KEY;
-import static com.eminus.client.settings.SettingsText.FAR_RENDER_CELLS_KEY;
+import static com.eminus.client.settings.SettingsText.FAR_RENDER_CHUNKS_KEY;
 import static com.eminus.client.settings.SettingsText.FOG_KEY;
 import static com.eminus.client.settings.SettingsText.GENERAL_CATEGORY_KEY;
 import static com.eminus.client.settings.SettingsText.INGESTION_KEY;
@@ -25,12 +25,14 @@ import static com.eminus.client.settings.SettingsText.tooltip;
 import com.eminus.compat.iris.IrisShaderPack;
 import com.eminus.settings.DetailDistance;
 import com.eminus.settings.LodChoice;
+import com.eminus.settings.FarDistance;
 import com.eminus.settings.Settings;
 import com.eminus.settings.SettingsDraft;
 import com.eminus.settings.SettingsService;
 import com.eminus.settings.ShaderPackLod;
 import com.mojang.serialization.Codec;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.OptionInstance;
 import net.minecraft.client.Options;
 import net.minecraft.client.gui.components.Button;
@@ -44,7 +46,7 @@ public final class SettingsScreen extends DraftOptionsScreen {
 
     private final OptionInstance<Boolean> ingestion;
     private final OptionInstance<LodChoice> lodChoice;
-    private final OptionInstance<Integer> farRenderCells;
+    private final OptionInstance<Integer> farRenderChunks;
     private final OptionInstance<Integer> workerThreads;
     private final OptionInstance<DetailDistance> detailDistance;
     private final OptionInstance<Boolean> fog;
@@ -66,12 +68,13 @@ public final class SettingsScreen extends DraftOptionsScreen {
                 coarseToFine(SliderPositions.LAST_LOD_CHOICE, SliderPositions::lodChoice,
                         SliderPositions::lodChoicePosition),
                 settings.lodChoice(), value -> this.editFromOptions());
-        this.farRenderCells = new OptionInstance<>(FAR_RENDER_CELLS_KEY,
-                tooltip(SettingsText.withCost(SettingsText.hint(FAR_RENDER_CELLS_KEY), OptionCost.LOD_DISTANCE)),
+        this.farRenderChunks = new OptionInstance<>(FAR_RENDER_CHUNKS_KEY,
+                tooltip(SettingsText.withCost(SettingsText.hint(FAR_RENDER_CHUNKS_KEY), OptionCost.LOD_DISTANCE)),
                 (caption, value) -> Options.genericValueLabel(caption, SettingsText.farRenderDistance(value)),
-                new OptionInstance.IntRange(Settings.MIN_FAR_RENDER_CELLS, Settings.MAX_FAR_RENDER_CELLS,
-                        APPLY_ON_RELEASE),
-                settings.farRenderCells(), value -> this.editFromOptions());
+                new OptionInstance.IntRange(FarDistance.minimumChunks(Minecraft.getInstance().options.getEffectiveRenderDistance()),
+                        Settings.MAX_FAR_RENDER_CHUNKS, APPLY_ON_RELEASE),
+                Math.max(settings.farRenderChunks(),
+                        FarDistance.minimumChunks(Minecraft.getInstance().options.getEffectiveRenderDistance())), value -> this.editFromOptions());
         this.workerThreads = new OptionInstance<>(WORKER_THREADS_KEY, tooltip(WORKER_THREADS_KEY),
                 (caption, value) -> Options.genericValueLabel(caption, value),
                 new OptionInstance.IntRange(Settings.MIN_WORKER_THREADS, Settings.MAX_WORKER_THREADS,
@@ -108,7 +111,7 @@ public final class SettingsScreen extends DraftOptionsScreen {
                 .build();
         this.addHeader(GENERAL_CATEGORY_KEY);
         this.optionsList().addSmall(this.lodChoice.createButton(this.options), this.lodChoice, customLodButton);
-        this.optionsList().addBig(this.farRenderCells);
+        this.optionsList().addBig(this.farRenderChunks);
         this.optionsList().addBig(this.detailDistance);
         this.optionsList().addBig(this.ingestion);
         this.addHeader(APPEARANCE_CATEGORY_KEY);
@@ -138,7 +141,7 @@ public final class SettingsScreen extends DraftOptionsScreen {
                 this.ingestion.get(),
                 this.lodChoice.get(),
                 settings.customLod(),
-                this.farRenderCells.get(),
+                this.farRenderChunks.get(),
                 this.workerThreads.get(),
                 this.detailDistance.get(),
                 this.fog.get(),

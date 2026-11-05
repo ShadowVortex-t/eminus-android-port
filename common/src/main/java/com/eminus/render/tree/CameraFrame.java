@@ -10,7 +10,7 @@ public record CameraFrame(
         Matrix4fc viewProjection,
         float pixelsPerBlock,
         float inViewPixelsPerBlock,
-        int farCells,
+        int farChunks,
         int subdivisionPixels,
         boolean pressure,
         long frame,
@@ -25,7 +25,7 @@ public record CameraFrame(
     }
 
     CameraFrame underPressure() {
-        return new CameraFrame(eyeX, eyeY, eyeZ, viewProjection, pixelsPerBlock, inViewPixelsPerBlock, farCells,
+        return new CameraFrame(eyeX, eyeY, eyeZ, viewProjection, pixelsPerBlock, inViewPixelsPerBlock, farChunks,
                 subdivisionPixels, true, frame, rotation, turnMargin);
     }
 }

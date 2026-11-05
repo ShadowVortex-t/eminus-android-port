@@ -14,6 +14,7 @@ import com.eminus.client.settings.SettingsText;
 import com.eminus.client.settings.SliderPositions;
 import com.eminus.compat.iris.IrisShaderPack;
 import com.eminus.compat.sodium.settings.mixin.VideoSettingsScreenAccessor;
+import com.eminus.settings.FarDistance;
 import com.eminus.settings.Settings;
 import com.eminus.settings.SettingsService;
 import com.eminus.settings.ShaderPackLod;
@@ -37,7 +38,7 @@ public final class SodiumSettingsPage implements ConfigEntryPoint {
     private static final String INGESTION_ID = "ingestion";
     private static final String LOD_QUALITY_ID = "lod_quality";
     private static final String CUSTOM_LOD_ID = "custom_lod";
-    private static final String FAR_RENDER_CELLS_ID = "far_render_cells";
+    private static final String FAR_RENDER_CHUNKS_ID = "far_render_cells";
     private static final String WORKER_THREADS_ID = "worker_threads";
     private static final String DETAIL_DISTANCE_ID = "detail_distance";
     private static final String FOG_ID = "fog";
@@ -90,16 +91,18 @@ public final class SodiumSettingsPage implements ConfigEntryPoint {
                         .setTooltip(SettingsText.hint(SettingsText.CUSTOM_LOD_KEY))
                         .setScreenConsumer(screen -> Minecraft.getInstance().gui.setScreen(
                                 CustomLodScreen.withOwnDraft(screen, SodiumSettingsPage::returnTo))))
-                .addOption(builder.createIntegerOption(id(FAR_RENDER_CELLS_ID))
-                        .setName(Component.translatable(SettingsText.FAR_RENDER_CELLS_KEY))
-                        .setTooltip(SettingsText.withRestart(SettingsText.hint(SettingsText.FAR_RENDER_CELLS_KEY),
+                .addOption(builder.createIntegerOption(id(FAR_RENDER_CHUNKS_ID))
+                        .setName(Component.translatable(SettingsText.FAR_RENDER_CHUNKS_KEY))
+                        .setTooltip(SettingsText.withRestart(SettingsText.hint(SettingsText.FAR_RENDER_CHUNKS_KEY),
                                 OptionCost.LOD_DISTANCE))
                         .setStorageHandler(this::save)
-                        .setRange(Settings.MIN_FAR_RENDER_CELLS, Settings.MAX_FAR_RENDER_CELLS, STEP)
+                        .setRange(FarDistance.minimumChunks(Minecraft.getInstance().options.getEffectiveRenderDistance()),
+                                Settings.MAX_FAR_RENDER_CHUNKS, STEP)
                         .setValueFormatter(SettingsText::farRenderDistance)
-                        .setDefaultValue(defaults.farRenderCells())
-                        .setBinding(value -> edit(settings -> settings.withFarRenderCells(value)),
-                                () -> current().farRenderCells()))
+                        .setDefaultValue(defaults.farRenderChunks())
+                        .setBinding(value -> edit(settings -> settings.withFarRenderChunks(value)),
+                                () -> Math.max(current().farRenderChunks(), FarDistance.minimumChunks(
+                                Minecraft.getInstance().options.getEffectiveRenderDistance()))))
                 .addOption(builder.createIntegerOption(id(DETAIL_DISTANCE_ID))
                         .setName(Component.translatable(SettingsText.DETAIL_DISTANCE_KEY))
                         .setTooltip(position -> SettingsText.detailDistanceHint())

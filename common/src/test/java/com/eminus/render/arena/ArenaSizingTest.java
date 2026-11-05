@@ -19,7 +19,7 @@ class ArenaSizingTest {
     private static final long CRAMPED_DEVICE = 64L * 1024 * 1024;
     private static final long TEXEL_LIMITED = 1024L * 1024 * 1024;
     private static final float FOCAL_PIXELS = 978.0F;
-    private static final int FAR_CELLS = Settings.DEFAULT_FAR_RENDER_CELLS;
+    private static final int FAR_CELLS = Settings.DEFAULT_FAR_RENDER_CHUNKS;
     private static final int SUBDIVISION = Settings.DEFAULT_DETAIL_DISTANCE.pixels();
     private static final int LOWEST_LEVEL = Settings.defaults().lodQuality().storedLevel();
     private static final float MEASURED_FOCAL_PIXELS = 977.6F;
@@ -32,13 +32,13 @@ class ArenaSizingTest {
 
     @Test
     void aBudgetBelowTheFloorIsLiftedToIt() {
-        assertEquals(ArenaSizing.MIN_BYTES, ArenaSizing.wanted(Settings.MIN_FAR_RENDER_CELLS,
+        assertEquals(ArenaSizing.MIN_BYTES, ArenaSizing.wanted(Settings.MIN_FAR_RENDER_CHUNKS,
                 DetailDistance.MINIMAL.pixels(), FOCAL_PIXELS, DetailLevel.MAX, MeshOcclusion.EVERY_LEVEL));
     }
 
     @Test
     void theSmallestRenderDistanceStillPaysForTheFinestShell() {
-        long bytes = ArenaSizing.wanted(Settings.MIN_FAR_RENDER_CELLS, SUBDIVISION, FOCAL_PIXELS, LOWEST_LEVEL, MeshOcclusion.EVERY_LEVEL);
+        long bytes = ArenaSizing.wanted(Settings.MIN_FAR_RENDER_CHUNKS, SUBDIVISION, FOCAL_PIXELS, LOWEST_LEVEL, MeshOcclusion.EVERY_LEVEL);
 
         assertTrue(bytes > ArenaSizing.MIN_BYTES,
                 "The level-0 shell reaches past the shortest far distance, so the floor does not bind: " + bytes);
@@ -46,7 +46,7 @@ class ArenaSizingTest {
 
     @Test
     void theLargestRenderDistanceIsCappedAtTheCeiling() {
-        long wanted = ArenaSizing.wanted(Settings.MAX_FAR_RENDER_CELLS, SUBDIVISION, FOCAL_PIXELS, LOWEST_LEVEL, MeshOcclusion.EVERY_LEVEL);
+        long wanted = ArenaSizing.wanted(Settings.MAX_FAR_RENDER_CHUNKS, SUBDIVISION, FOCAL_PIXELS, LOWEST_LEVEL, MeshOcclusion.EVERY_LEVEL);
 
         assertTrue(wanted > TEXEL_LIMITED, "The largest render distance asks for more than the ceiling: " + wanted);
         assertEquals(TEXEL_LIMITED, ArenaSizing.fitted(wanted, TEXEL_LIMITED));

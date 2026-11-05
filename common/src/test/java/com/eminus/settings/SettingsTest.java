@@ -14,7 +14,7 @@ class SettingsTest {
 
         assertTrue(defaults.ingestion());
         assertEquals(LodChoice.ULTRA, defaults.lodChoice());
-        assertEquals(16, defaults.farRenderCells());
+        assertEquals(512, defaults.farRenderChunks());
         assertEquals(DetailDistance.MEDIUM, defaults.detailDistance());
         assertTrue(defaults.fog());
         assertTrue(defaults.fade());
@@ -66,7 +66,7 @@ class SettingsTest {
         assertEquals(new Settings(true, LodChoice.LOW, Settings.DEFAULT_CUSTOM_LOD, 16, 4, DetailDistance.MEDIUM, true, true, ShaderPackLod.DEFAULT, true), base.withLodChoice(LodChoice.LOW));
         assertEquals(new Settings(true, LodChoice.MEDIUM, CUSTOM_EDIT, 16, 4, DetailDistance.MEDIUM, true, true,
                 ShaderPackLod.DEFAULT, true), base.withCustomLod(CUSTOM_EDIT));
-        assertEquals(new Settings(true, LodChoice.MEDIUM, Settings.DEFAULT_CUSTOM_LOD, 40, 4, DetailDistance.MEDIUM, true, true, ShaderPackLod.DEFAULT, true), base.withFarRenderCells(40));
+        assertEquals(new Settings(true, LodChoice.MEDIUM, Settings.DEFAULT_CUSTOM_LOD, 40, 4, DetailDistance.MEDIUM, true, true, ShaderPackLod.DEFAULT, true), base.withFarRenderChunks(40));
         assertEquals(new Settings(true, LodChoice.MEDIUM, Settings.DEFAULT_CUSTOM_LOD, 16, 9, DetailDistance.MEDIUM, true, true, ShaderPackLod.DEFAULT, true), base.withWorkerThreads(9));
         assertEquals(new Settings(true, LodChoice.MEDIUM, Settings.DEFAULT_CUSTOM_LOD, 16, 4, DetailDistance.LOW, true, true, ShaderPackLod.DEFAULT, true),
                 base.withDetailDistance(DetailDistance.LOW));

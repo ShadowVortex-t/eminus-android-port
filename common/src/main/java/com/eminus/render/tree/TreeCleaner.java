@@ -42,7 +42,7 @@ final class TreeCleaner {
 
         unwanted.clear();
         far.clear();
-        double farBlocks = (double) camera.farCells() * FarDistance.BLOCKS_PER_TOP_LEVEL_CELL;
+        double farBlocks = (double) camera.farChunks() * FarDistance.BLOCKS_PER_CHUNK;
         for (TreeNode node : all) {
             classify(node, camera, frame, horizon, farBlocks);
         }
