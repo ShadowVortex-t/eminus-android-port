@@ -1,4 +1,9 @@
 # Eminus
+it's forked to work with android launcher u can do whatever u want as its fork part is entirely vibe coded as I'm just a 13 year old kid learning coding but so far worked fine with using fabric 0.2.1 and with zalith launcher 2 using my potato Samsung f22
+gpu: Mali-G52 
+
+feel free to report any bugs or just get claude to do it for you
+
 
 A NeoForge and Fabric client mod that draws terrain far beyond the game's render distance. Eminus keeps a low-detail (LOD) copy of every chunk the client has seen and draws it behind the game's own terrain.
 
